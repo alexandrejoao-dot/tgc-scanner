@@ -3,10 +3,15 @@ import { getSupabase } from '../lib/supabase.js';
 import { obterCartaPokemon } from '../lib/pokemontcg.js';
 import { obterCartaMagic } from '../lib/scryfall.js';
 
-// GET    -> lista a coleção; atualiza os preços em direto contra a fonte de
-//           cada carta (best-effort, uma falha isolada não derruba a lista)
-//           e desloca preco_atual -> preco_anterior para se poder mostrar a
-//           variação desde a última vez que a página foi aberta.
+// Só atualiza o preço de uma carta em direto se a última atualização já tiver
+// mais do que isto — evita repetir dezenas de pedidos às APIs externas (lentas
+// e instáveis) sempre que a lista é aberta, quando os preços não mudam de
+// minuto a minuto.
+const IDADE_MAXIMA_MS = 6 * 60 * 60 * 1000; // 6 horas
+
+// GET    -> lista a coleção; atualiza em direto os preços desatualizados
+//           (best-effort, uma falha isolada não derruba a lista) e desloca
+//           preco_atual -> preco_anterior para se poder mostrar a variação.
 // POST   -> adiciona uma carta à coleção.
 // DELETE -> remove uma carta da coleção.
 export default async function handler(req, res) {
@@ -27,6 +32,8 @@ export default async function handler(req, res) {
 
     const atualizadas = await Promise.all(
       (data || []).map(async (item) => {
+        const idade = Date.now() - new Date(item.atualizado_em).getTime();
+        if (idade < IDADE_MAXIMA_MS) return item;
         try {
           const fresca =
             item.jogo === 'magic'
