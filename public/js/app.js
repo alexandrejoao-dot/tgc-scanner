@@ -334,20 +334,24 @@ async function adicionarACollecao(c, foil, lista){
 /* =========================================================
    A MINHA COLEÇÃO
    ========================================================= */
-function ordenarItens(lista, ordem){
+function ordenarItens(lista, ordem, direcao){
   const copia = [...lista];
-  if(ordem === "ano") return copia.sort((a,b) => (b.ano ?? -Infinity) - (a.ano ?? -Infinity));
-  if(ordem === "valor") return copia.sort((a,b) => (Number(b.preco_atual_eur) || 0) - (Number(a.preco_atual_eur) || 0));
-  return copia; // "recentes": já vem ordenado por criado_em desc da API
+  const cresc = direcao === "asc";
+  if(ordem === "ano") return copia.sort((a,b) => cresc ? (a.ano ?? Infinity) - (b.ano ?? Infinity) : (b.ano ?? -Infinity) - (a.ano ?? -Infinity));
+  if(ordem === "valor") return copia.sort((a,b) => cresc ? (Number(a.preco_atual_eur) || 0) - (Number(b.preco_atual_eur) || 0) : (Number(b.preco_atual_eur) || 0) - (Number(a.preco_atual_eur) || 0));
+  if(ordem === "recentes" && cresc) return copia.reverse();
+  return copia; // "recentes" descendente: já vem ordenado por criado_em desc da API
 }
 
-async function mostrarColecao(tipoLista, filtro, ordem){
+async function mostrarColecao(tipoLista, filtro, ordem, direcao){
   tipoLista = tipoLista || estado.tipoLista || "colecao";
   filtro = filtro || estado.filtroColecao || "todos";
   ordem = ordem || estado.ordemColecao || "recentes";
+  direcao = direcao || estado.direcaoColecao || "desc";
   estado.tipoLista = tipoLista;
   estado.filtroColecao = filtro;
   estado.ordemColecao = ordem;
+  estado.direcaoColecao = direcao;
   const titulo = tipoLista === "venda" ? "Valor a vender" : "Valor da coleção";
   marcarNavAtiva(tipoLista);
   definirAcoesCabecalho(`<button onclick="sair()" class="material-symbols-outlined text-primary hover:opacity-80 active:scale-95 transition-transform" title="Sair">logout</button>`);
@@ -356,7 +360,7 @@ async function mostrarColecao(tipoLista, filtro, ordem){
   try{
     const dados = await pedidoAPI(`/api/colecao?lista=${tipoLista}`);
     const itens = dados.colecao || [];
-    const filtrados = ordenarItens(filtro === "todos" ? itens : itens.filter(i => i.jogo === filtro), ordem);
+    const filtrados = ordenarItens(filtro === "todos" ? itens : itens.filter(i => i.jogo === filtro), ordem, direcao);
 
     const valorTotal = itens.reduce((s, i) => s + (Number(i.preco_atual_eur) || 0), 0);
     const valorAnteriorTotal = itens.reduce((s, i) => s + (Number(i.preco_anterior_eur ?? i.preco_atual_eur) || 0), 0);
@@ -401,18 +405,22 @@ async function mostrarColecao(tipoLista, filtro, ordem){
         </section>
         <section class="flex gap-sm overflow-x-auto pb-md no-scrollbar mb-sm">
           ${["todos","pokemon","magic"].map(f => `
-            <button onclick="mostrarColecao('${tipoLista}','${f}','${ordem}')" class="px-md py-sm ${filtro===f ? "bg-primary text-on-primary" : "bg-surface-container-high text-on-surface border border-white/5"} font-body-sm rounded-full whitespace-nowrap transition-colors">
+            <button onclick="mostrarColecao('${tipoLista}','${f}','${ordem}','${direcao}')" class="px-md py-sm ${filtro===f ? "bg-primary text-on-primary" : "bg-surface-container-high text-on-surface border border-white/5"} font-body-sm rounded-full whitespace-nowrap transition-colors">
               ${f === "todos" ? "Todos" : f === "pokemon" ? "Pokémon" : "Magic"}
             </button>
           `).join("")}
         </section>
         <section class="flex items-center gap-sm overflow-x-auto pb-md no-scrollbar mb-md">
           <span class="material-symbols-outlined text-outline text-[18px] flex-shrink-0">sort</span>
-          ${[["recentes","Recentes"],["ano","Ano"],["valor","Valor"]].map(([o,rotulo]) => `
-            <button onclick="mostrarColecao('${tipoLista}','${filtro}','${o}')" class="px-md py-xs ${ordem===o ? "bg-primary text-on-primary" : "bg-surface-container-high text-on-surface border border-white/5"} font-body-sm text-[13px] rounded-full whitespace-nowrap transition-colors">
+          ${[["recentes","Recentes"],["ano","Ano"],["valor","Valor"]].map(([o,rotulo]) => {
+            const ativo = ordem === o;
+            const novaDirecao = ativo ? (direcao === "asc" ? "desc" : "asc") : "desc";
+            return `
+            <button onclick="mostrarColecao('${tipoLista}','${filtro}','${o}','${novaDirecao}')" class="px-md py-xs ${ativo ? "bg-primary text-on-primary" : "bg-surface-container-high text-on-surface border border-white/5"} font-body-sm text-[13px] rounded-full whitespace-nowrap transition-colors flex items-center gap-1">
               ${rotulo}
+              ${ativo ? `<span class="material-symbols-outlined text-[14px]">${direcao === "asc" ? "arrow_upward" : "arrow_downward"}</span>` : ""}
             </button>
-          `).join("")}
+          `;}).join("")}
         </section>
         <section>
           ${filtrados.length ? `<div class="grid grid-cols-1 gap-md pb-md">${filtrados.map(itemColecao).join("")}</div>` : `<div class="text-center text-outline font-body-sm mt-xl">Ainda não tens cartas ${filtro !== "todos" ? "deste jogo " : ""}${tipoLista === "venda" ? "para vender" : "na coleção"}.</div>`}
