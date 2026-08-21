@@ -14,7 +14,7 @@ create table if not exists colecao (
   raridade text not null default '',
   ano smallint,
   foil boolean not null default false,
-  lista text not null default 'colecao' check (lista in ('colecao', 'venda')),
+  lista text not null default 'colecao' check (lista in ('colecao', 'venda', 'future')),
   imagem text not null default '',
   preco_atual_eur numeric,
   preco_anterior_eur numeric,

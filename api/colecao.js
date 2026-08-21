@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   const supabase = getSupabase();
 
   if (req.method === 'GET') {
-    const lista = req.query?.lista === 'venda' ? 'venda' : 'colecao';
+    const lista = ['venda', 'future'].includes(req.query?.lista) ? req.query.lista : 'colecao';
     const { data, error } = await supabase
       .from('colecao')
       .select('*')
@@ -74,7 +74,7 @@ export default async function handler(req, res) {
         raridade: raridade || '',
         ano: ano ?? null,
         foil: !!foil,
-        lista: lista === 'venda' ? 'venda' : 'colecao',
+        lista: ['venda', 'future'].includes(lista) ? lista : 'colecao',
         imagem: imagem || '',
         preco_atual_eur: preco_eur ?? null,
         preco_anterior_eur: null,

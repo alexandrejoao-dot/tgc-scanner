@@ -60,6 +60,7 @@ document.querySelectorAll(".nav-item").forEach(btn => {
     if(destino === "pesquisar") mostrarPesquisa();
     else if(destino === "colecao") mostrarColecao("colecao");
     else if(destino === "venda") mostrarColecao("venda");
+    else if(destino === "future") mostrarColecao("future");
     else if(destino === "definicoes") mostrarDefinicoes();
   });
 });
@@ -301,8 +302,9 @@ async function mostrarDetalhe(jogo, id){
       <div class="spacer-nav-safe"></div>
       <div class="fixed bottom-nav-safe left-0 w-full px-container-padding z-40">
         <div class="flex gap-sm mb-sm">
-          <button id="btn-lista-colecao" class="flex-1 py-2 rounded-lg font-body-sm font-semibold transition-colors">Coleção</button>
+          <button id="btn-lista-colecao" class="flex-1 py-2 rounded-lg font-body-sm font-semibold transition-colors">Premium</button>
           <button id="btn-lista-venda" class="flex-1 py-2 rounded-lg font-body-sm font-semibold transition-colors flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[16px]">sell</span>Venda</button>
+          <button id="btn-lista-future" class="flex-1 py-2 rounded-lg font-body-sm font-semibold transition-colors flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[16px]">upcoming</span>Future</button>
         </div>
         <button id="btn-adicionar" class="w-full h-14 bg-primary-container text-on-primary-container font-headline-md text-[18px] rounded-xl flex items-center justify-center gap-sm shadow-xl active:scale-95 transition-transform">
           <span class="material-symbols-outlined">library_add</span>
@@ -327,14 +329,17 @@ async function mostrarDetalhe(jogo, id){
     }
     const btnListaColecao = document.getElementById("btn-lista-colecao");
     const btnListaVenda = document.getElementById("btn-lista-venda");
+    const btnListaFuture = document.getElementById("btn-lista-future");
     const labelAdicionar = document.getElementById("btn-adicionar-label");
     const pintarToggleLista = () => {
       btnListaColecao.className = "flex-1 py-2 rounded-lg font-body-sm font-semibold transition-colors " + (listaSelecionada === "colecao" ? ativoClasses.join(" ") : inativoClasses.join(" "));
       btnListaVenda.className = "flex-1 py-2 rounded-lg font-body-sm font-semibold transition-colors flex items-center justify-center gap-1 " + (listaSelecionada === "venda" ? ativoClasses.join(" ") : inativoClasses.join(" "));
-      labelAdicionar.textContent = listaSelecionada === "venda" ? "Adicionar à venda" : "Adicionar à coleção";
+      btnListaFuture.className = "flex-1 py-2 rounded-lg font-body-sm font-semibold transition-colors flex items-center justify-center gap-1 " + (listaSelecionada === "future" ? ativoClasses.join(" ") : inativoClasses.join(" "));
+      labelAdicionar.textContent = listaSelecionada === "venda" ? "Adicionar à venda" : listaSelecionada === "future" ? "Adicionar ao Future" : "Adicionar ao Premium";
     };
     btnListaColecao.addEventListener("click", () => { listaSelecionada = "colecao"; pintarToggleLista(); });
     btnListaVenda.addEventListener("click", () => { listaSelecionada = "venda"; pintarToggleLista(); });
+    btnListaFuture.addEventListener("click", () => { listaSelecionada = "future"; pintarToggleLista(); });
     pintarToggleLista();
     document.getElementById("btn-adicionar").addEventListener("click", () => adicionarACollecao(c, foilSelecionado, listaSelecionada));
   }catch(e){
@@ -395,7 +400,7 @@ async function adicionarACollecao(c, foil, lista){
         raridade: c.raridade,
         ano: c.ano,
         foil: !!foil,
-        lista: lista === "venda" ? "venda" : "colecao",
+        lista: ["venda", "future"].includes(lista) ? lista : "colecao",
         imagem: c.imagem,
         preco_eur: foil ? c.preco_foil_eur : c.preco_eur,
       }),
@@ -432,7 +437,7 @@ async function mostrarColecao(tipoLista, filtro, ordem, direcao){
   estado.filtroColecao = filtro;
   estado.ordemColecao = ordem;
   estado.direcaoColecao = direcao;
-  const titulo = tipoLista === "venda" ? "Valor a vender" : "Valor da coleção";
+  const titulo = tipoLista === "venda" ? "Valor a vender" : tipoLista === "future" ? "Valor Future" : "Valor Premium";
   marcarNavAtiva(tipoLista);
   definirAcoesCabecalho(`<button onclick="sair()" class="material-symbols-outlined text-primary hover:opacity-80 active:scale-95 transition-transform" title="Sair">logout</button>`);
 
@@ -503,7 +508,7 @@ async function mostrarColecao(tipoLista, filtro, ordem, direcao){
           `;}).join("")}
         </section>
         <section>
-          ${filtrados.length ? `<div class="grid grid-cols-1 gap-md pb-md">${filtrados.map(itemColecao).join("")}</div>` : `<div class="text-center text-outline font-body-sm mt-xl">Ainda não tens cartas ${filtro !== "todos" ? "deste jogo " : ""}${tipoLista === "venda" ? "para vender" : "na coleção"}.</div>`}
+          ${filtrados.length ? `<div class="grid grid-cols-1 gap-md pb-md">${filtrados.map(itemColecao).join("")}</div>` : `<div class="text-center text-outline font-body-sm mt-xl">Ainda não tens cartas ${filtro !== "todos" ? "deste jogo " : ""}${tipoLista === "venda" ? "para vender" : tipoLista === "future" ? "no Future" : "no Premium"}.</div>`}
         </section>
       </div>
     `;
