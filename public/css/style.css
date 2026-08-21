@@ -1,0 +1,75 @@
+/* Design system "Cyber-Scanner" — consolidado a partir dos 4 mocks do Stitch
+   (live_scanner, card_details, my_collection, settings). Os tokens de cor,
+   tipografia e espaçamento vivem na config do Tailwind em index.html; aqui
+   ficam só as classes/efeitos custom que os mocks definiam inline. */
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  display: inline-block;
+  line-height: 1;
+}
+
+.glass-panel {
+  background: rgba(19, 27, 46, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.neon-glow {
+  box-shadow: 0 0 20px rgba(210, 187, 255, 0.3);
+}
+
+.price-up { color: #4ae176; }
+.price-down { color: #ffb4ab; }
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.02); }
+}
+.animate-glow { animation: pulse-glow 3s ease-in-out infinite; }
+
+.scan-line {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #4ae176, transparent);
+  position: absolute;
+  width: 100%;
+  top: 0;
+  animation: scan 3s linear infinite;
+}
+@keyframes scan {
+  0% { top: 0%; opacity: 0; }
+  50% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* Toggle switch (usado em Definições) */
+.switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+  position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #2d3449; transition: .4s; border-radius: 34px;
+}
+.slider:before {
+  position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
+  background-color: white; transition: .4s; border-radius: 50%;
+}
+input:checked + .slider { background-color: #7c3aed; }
+input:checked + .slider:before { transform: translateX(20px); }
+input:disabled + .slider { opacity: 0.4; cursor: not-allowed; }
+
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #2d3449; border-radius: 10px; }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+body {
+  background-color: #0b1326;
+  color: #dae2fd;
+  -webkit-font-smoothing: antialiased;
+  min-height: max(884px, 100dvh);
+}
+
+.pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }

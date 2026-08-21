@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html class="dark" lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b1326">
+<title>TCG Scanner</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Hanken+Grotesk:wght@600;700;800&family=JetBrains+Mono:wght@500;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "on-secondary": "#00344d", "surface-container-low": "#131b2e",
+          "on-secondary-fixed-variant": "#004c6e", "primary-fixed-dim": "#d2bbff",
+          "on-tertiary": "#003915", "surface-variant": "#2d3449", "primary": "#d2bbff",
+          "surface-container-high": "#222a3d", "primary-fixed": "#eaddff",
+          "secondary-fixed": "#c9e6ff", "surface": "#0b1326", "on-primary-container": "#ede0ff",
+          "on-tertiary-fixed": "#002109", "error": "#ffb4ab", "inverse-surface": "#dae2fd",
+          "on-primary-fixed-variant": "#5a00c6", "on-tertiary-fixed-variant": "#005321",
+          "tertiary": "#4ae176", "error-container": "#93000a", "tertiary-container": "#007733",
+          "on-error": "#690005", "surface-dim": "#0b1326", "primary-container": "#7c3aed",
+          "on-secondary-container": "#00344e", "on-primary": "#3f008e", "outline": "#958da1",
+          "on-tertiary-container": "#84ff9c", "secondary-container": "#00a2e6",
+          "surface-bright": "#31394d", "on-secondary-fixed": "#001e2f", "surface-container": "#171f33",
+          "on-surface-variant": "#ccc3d8", "on-primary-fixed": "#25005a", "tertiary-fixed": "#6bff8f",
+          "inverse-primary": "#732ee4", "on-background": "#dae2fd", "outline-variant": "#4a4455",
+          "surface-container-lowest": "#060e20", "background": "#0b1326", "secondary": "#89ceff",
+          "surface-tint": "#d2bbff", "on-surface": "#dae2fd", "tertiary-fixed-dim": "#4ae176",
+          "inverse-on-surface": "#283044", "on-error-container": "#ffdad6",
+          "surface-container-highest": "#2d3449", "secondary-fixed-dim": "#89ceff"
+        },
+        borderRadius: { DEFAULT: "0.125rem", lg: "0.25rem", xl: "0.5rem", full: "0.75rem" },
+        spacing: { unit: "4px", md: "16px", gutter: "12px", sm: "8px", xl: "40px", lg: "24px", xs: "4px", "container-padding": "16px" },
+        fontFamily: {
+          "body-sm": ["Inter"], "headline-lg": ["Hanken Grotesk"], "price-display": ["JetBrains Mono"],
+          "body-lg": ["Inter"], "data-label": ["JetBrains Mono"], "headline-lg-mobile": ["Hanken Grotesk"], "headline-md": ["Hanken Grotesk"]
+        },
+        fontSize: {
+          "body-sm": ["14px", {lineHeight: "20px", fontWeight: "400"}],
+          "headline-lg": ["32px", {lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "700"}],
+          "price-display": ["20px", {lineHeight: "24px", fontWeight: "700"}],
+          "body-lg": ["16px", {lineHeight: "24px", fontWeight: "400"}],
+          "data-label": ["12px", {lineHeight: "16px", letterSpacing: "0.05em", fontWeight: "500"}],
+          "headline-lg-mobile": ["28px", {lineHeight: "36px", fontWeight: "700"}],
+          "headline-md": ["24px", {lineHeight: "32px", fontWeight: "600"}]
+        }
+      }
+    }
+  }
+</script>
+</head>
+<body class="bg-background text-on-surface font-body-lg min-h-screen flex flex-col">
+<header class="flex justify-between items-center px-gutter w-full h-16 z-50 sticky top-0 bg-surface/80 backdrop-blur-xl border-b border-white/10">
+  <div class="flex items-center gap-md">
+    <h1 class="font-headline-md text-headline-md font-bold tracking-tighter text-primary">TCG SCANNER</h1>
+  </div>
+  <div id="cabecalho-acoes" class="flex items-center gap-sm"></div>
+</header>
+
+<main id="ecra" class="flex-1 pb-28"></main>
+
+<nav id="nav-inferior" class="fixed bottom-0 w-full z-50 hidden justify-around items-center px-4 py-2 pb-safe bg-surface/80 backdrop-blur-xl border-t border-white/10 shadow-[0_-4px_20px_rgba(0,0,0,0.5)] rounded-t-xl">
+  <button class="nav-item flex flex-col items-center justify-center px-4 py-1 transition-colors active:scale-90 transition-transform" data-ecra="pesquisar">
+    <span class="material-symbols-outlined">filter_center_focus</span>
+    <span class="font-body-sm text-body-sm">Pesquisar</span>
+  </button>
+  <button class="nav-item flex flex-col items-center justify-center px-4 py-1 transition-colors active:scale-90 transition-transform" data-ecra="colecao">
+    <span class="material-symbols-outlined">style</span>
+    <span class="font-body-sm text-body-sm">Coleção</span>
+  </button>
+  <button class="nav-item flex flex-col items-center justify-center px-4 py-1 transition-colors active:scale-90 transition-transform" data-ecra="venda">
+    <span class="material-symbols-outlined">sell</span>
+    <span class="font-body-sm text-body-sm">Venda</span>
+  </button>
+  <button class="nav-item flex flex-col items-center justify-center px-4 py-1 transition-colors active:scale-90 transition-transform" data-ecra="definicoes">
+    <span class="material-symbols-outlined">settings</span>
+    <span class="font-body-sm text-body-sm">Definições</span>
+  </button>
+</nav>
+
+<script src="js/sessao.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

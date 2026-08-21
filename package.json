@@ -1,0 +1,14 @@
+{
+  "name": "tcg-scanner",
+  "version": "1.0.0",
+  "private": true,
+  "description": "App pessoal para pesquisar cartas de Pokémon e Magic: The Gathering e acompanhar o valor de uma coleção, com preços da Cardmarket.",
+  "type": "module",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.58.0",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
