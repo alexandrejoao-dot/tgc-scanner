@@ -8,7 +8,17 @@ let estado = {
   jogoPesquisa: "pokemon",
   ultimaPesquisa: "",
   origemDetalhe: "pesquisar",
+  expansaoId: null,
+  expansaoNome: "",
 };
+
+const cacheSets = {};
+async function obterSets(jogo){
+  if(cacheSets[jogo]) return cacheSets[jogo];
+  const dados = await pedidoAPI(`/api/sets?jogo=${jogo}`);
+  cacheSets[jogo] = dados.sets || [];
+  return cacheSets[jogo];
+}
 
 /* ---------- helpers ---------- */
 function formatarEUR(valor){
@@ -74,6 +84,13 @@ function mostrarPesquisa(){
           value="${estado.ultimaPesquisa ? escaparHTML(estado.ultimaPesquisa) : ""}">
         <button id="btn-limpar-pesquisa" class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface transition-colors ${estado.ultimaPesquisa ? "" : "hidden"}">close</button>
       </div>
+      <div class="relative mb-md">
+        <input id="input-expansao" type="text" placeholder="Filtrar por expansão (opcional)..." autocomplete="off"
+          class="w-full bg-surface-container-high border border-white/10 rounded-xl pl-4 pr-11 py-2.5 text-on-surface font-body-sm focus:outline-none focus:border-primary"
+          value="${estado.expansaoNome ? escaparHTML(estado.expansaoNome) : ""}">
+        <button id="btn-limpar-expansao" class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface transition-colors ${estado.expansaoId ? "" : "hidden"}">close</button>
+        <div id="sugestoes-expansao" class="absolute z-30 w-full mt-1 bg-surface-container-high border border-white/10 rounded-xl overflow-hidden hidden max-h-64 overflow-y-auto shadow-xl"></div>
+      </div>
       <div id="resultados-pesquisa"></div>
     </div>
   `;
@@ -89,8 +106,8 @@ function mostrarPesquisa(){
   btnPokemon.textContent = "Pokémon";
   btnMagic.textContent = "Magic";
   pintarChips();
-  btnPokemon.addEventListener("click", () => { estado.jogoPesquisa = "pokemon"; pintarChips(); executarPesquisa(); });
-  btnMagic.addEventListener("click", () => { estado.jogoPesquisa = "magic"; pintarChips(); executarPesquisa(); });
+  btnPokemon.addEventListener("click", () => { estado.jogoPesquisa = "pokemon"; limparExpansao(); pintarChips(); executarPesquisa(); });
+  btnMagic.addEventListener("click", () => { estado.jogoPesquisa = "magic"; limparExpansao(); pintarChips(); executarPesquisa(); });
 
   const input = document.getElementById("input-pesquisa");
   const btnLimpar = document.getElementById("btn-limpar-pesquisa");
@@ -105,6 +122,68 @@ function mostrarPesquisa(){
     estado.ultimaPesquisa = "";
     btnLimpar.classList.add("hidden");
     input.focus();
+    executarPesquisa();
+  });
+
+  const inputExpansao = document.getElementById("input-expansao");
+  const btnLimparExpansao = document.getElementById("btn-limpar-expansao");
+  const sugestoesEl = document.getElementById("sugestoes-expansao");
+
+  function limparExpansao(){
+    estado.expansaoId = null;
+    estado.expansaoNome = "";
+    inputExpansao.value = "";
+    btnLimparExpansao.classList.add("hidden");
+    sugestoesEl.classList.add("hidden");
+    sugestoesEl.innerHTML = "";
+  }
+
+  function selecionarExpansao(set){
+    estado.expansaoId = set.id;
+    estado.expansaoNome = set.nome;
+    inputExpansao.value = set.nome;
+    btnLimparExpansao.classList.remove("hidden");
+    sugestoesEl.classList.add("hidden");
+    sugestoesEl.innerHTML = "";
+    executarPesquisa();
+  }
+
+  async function filtrarSugestoesExpansao(){
+    const termo = inputExpansao.value.trim().toLowerCase();
+    if(!termo){ sugestoesEl.classList.add("hidden"); return; }
+    try{
+      const sets = await obterSets(estado.jogoPesquisa);
+      const correspondencias = sets.filter(s => s.nome.toLowerCase().includes(termo)).slice(0, 8);
+      if(!correspondencias.length){ sugestoesEl.classList.add("hidden"); sugestoesEl.innerHTML = ""; return; }
+      sugestoesEl.innerHTML = correspondencias.map(s => `
+        <button type="button" class="sugestao-expansao w-full text-left px-md py-sm hover:bg-surface-container-highest transition-colors font-body-sm" data-id="${escaparAttr(s.id)}" data-nome="${escaparAttr(s.nome)}">
+          ${escaparHTML(s.nome)}${s.ano ? ` <span class="text-outline">(${s.ano})</span>` : ""}
+        </button>
+      `).join("");
+      sugestoesEl.classList.remove("hidden");
+      sugestoesEl.querySelectorAll(".sugestao-expansao").forEach(btn => {
+        btn.addEventListener("click", () => selecionarExpansao({ id: btn.dataset.id, nome: btn.dataset.nome }));
+      });
+    }catch(e){
+      sugestoesEl.classList.add("hidden");
+    }
+  }
+
+  const filtrarSugestoesAdiado = debounce(filtrarSugestoesExpansao, 200);
+  inputExpansao.addEventListener("input", () => {
+    if(estado.expansaoId && inputExpansao.value !== estado.expansaoNome){
+      estado.expansaoId = null;
+      estado.expansaoNome = "";
+      btnLimparExpansao.classList.add("hidden");
+    }
+    filtrarSugestoesAdiado();
+  });
+  inputExpansao.addEventListener("focus", () => { if(inputExpansao.value.trim()) filtrarSugestoesExpansao(); });
+  document.addEventListener("click", (e) => {
+    if(e.target !== inputExpansao && !sugestoesEl.contains(e.target)) sugestoesEl.classList.add("hidden");
+  });
+  btnLimparExpansao.addEventListener("click", () => {
+    limparExpansao();
     executarPesquisa();
   });
 
@@ -128,7 +207,8 @@ async function executarPesquisa(){
   }
   resultados.innerHTML = `<div class="text-center text-outline font-body-sm mt-xl">A pesquisar...</div>`;
   try{
-    const dados = await pedidoAPI(`/api/pesquisar?jogo=${estado.jogoPesquisa}&q=${encodeURIComponent(q)}`);
+    const filtroSet = estado.expansaoId ? `&set=${encodeURIComponent(estado.expansaoId)}` : "";
+    const dados = await pedidoAPI(`/api/pesquisar?jogo=${estado.jogoPesquisa}&q=${encodeURIComponent(q)}${filtroSet}`);
     const lista = dados.resultados || [];
     if(!lista.length){
       resultados.innerHTML = `<div class="text-center text-outline font-body-sm mt-xl">Sem resultados para "${escaparHTML(q)}".</div>`;
@@ -218,8 +298,8 @@ async function mostrarDetalhe(jogo, id){
         </div>
       </section>
       ${graficoTendencia(c.historico)}
-      <div class="h-44"></div>
-      <div class="fixed bottom-20 left-0 w-full px-container-padding z-40">
+      <div class="spacer-nav-safe"></div>
+      <div class="fixed bottom-nav-safe left-0 w-full px-container-padding z-40">
         <div class="flex gap-sm mb-sm">
           <button id="btn-lista-colecao" class="flex-1 py-2 rounded-lg font-body-sm font-semibold transition-colors">Coleção</button>
           <button id="btn-lista-venda" class="flex-1 py-2 rounded-lg font-body-sm font-semibold transition-colors flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[16px]">sell</span>Venda</button>

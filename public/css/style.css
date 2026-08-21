@@ -74,3 +74,5 @@ body {
 
 .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px) !important; }
 .pt-safe { padding-top: env(safe-area-inset-top, 0px) !important; }
+.bottom-nav-safe { bottom: calc(5rem + env(safe-area-inset-bottom, 0px) + 12px) !important; }
+.spacer-nav-safe { height: calc(13rem + env(safe-area-inset-bottom, 0px)) !important; }

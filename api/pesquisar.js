@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   }
   if (!exigirSessao(req, res)) return;
 
-  const { jogo, q } = req.query || {};
+  const { jogo, q, set } = req.query || {};
   if (!q || String(q).trim().length < 2) {
     res.status(400).json({ erro: 'Escreve pelo menos 2 letras para pesquisar.' });
     return;
@@ -20,7 +20,7 @@ export default async function handler(req, res) {
 
   try {
     const resultados =
-      jogo === 'magic' ? await pesquisarMagic(q) : await pesquisarPokemon(q);
+      jogo === 'magic' ? await pesquisarMagic(q, set) : await pesquisarPokemon(q, set);
     res.status(200).json({ resultados });
   } catch (err) {
     console.error('Erro na pesquisa:', err);
